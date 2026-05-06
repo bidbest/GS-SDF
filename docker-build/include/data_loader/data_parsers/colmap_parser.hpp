@@ -9,6 +9,7 @@ struct Colmap : DataParser {
   std::filesystem::path depth_pose_path_, mask_file_;
   int color_pose_type_, depth_pose_type_ = 0;
   bool color_pose_w2c_ = false;
+  bool llff_ = false;
 
   explicit Colmap(const std::filesystem::path &_dataset_path,
                   const std::filesystem::path &_config_path,
@@ -40,6 +41,7 @@ struct Colmap : DataParser {
     color_pose_type_ = config.color_pose_type;
     color_pose_w2c_ = config.color_pose_w2c;
     depth_pose_type_ = config.depth_pose_type;
+    llff_ = config.llff;
 
     load_intrinsics();
     load_data();
@@ -88,7 +90,7 @@ struct Colmap : DataParser {
     }
     std::cout << "Loaded " << color_poses_.size(0) << " color poses\n";
     TORCH_CHECK(color_poses_.size(0) > 0);
-    load_colors(color_type_, "", false, true);
+    load_colors(color_type_, "", false, llff_);
     std::cout << "Loaded " << raw_color_filelists_.size() << " color images\n";
     TORCH_CHECK(color_poses_.size(0) == raw_color_filelists_.size());
 
@@ -106,7 +108,7 @@ struct Colmap : DataParser {
     std::cout << "Loaded " << depth_poses_.size(0) << " depth poses\n";
     TORCH_CHECK(depth_poses_.size(0) > 0);
 
-    load_depths(depth_type_, "", false, true);
+    load_depths(depth_type_, "", false, llff_);
     std::cout << "Loaded " << raw_depth_filelists_.size() << " depths\n";
     TORCH_CHECK(depth_poses_.size(0) == raw_depth_filelists_.size());
   }
@@ -117,6 +119,10 @@ struct Colmap : DataParser {
      * @return {distance, ndir, dir_norm}, where ndir.norm = 1;
                {[height width 1], [height width 3], [height width 1]}
      */
+
+    if (depth_type_ == DepthType::Image) {
+      return DataParser::get_distance_ndir_zdirn(idx);
+    }
 
     auto pointcloud = get_depth_image(idx);
     // [height width 1]

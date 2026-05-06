@@ -1,0 +1,36 @@
+services:
+  gs_sdf:
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    build:
+      context: ../..
+      dockerfile: thirdparty/GS-SDF/Dockerfile
+      args:
+        CMAKE_BUILD_PARALLEL_LEVEL: ${CMAKE_BUILD_PARALLEL_LEVEL:-2}
+    image: 3dgs_pipe:gs-sdf-docker-build
+    network_mode: "host"
+    shm_size: 8gb
+    working_dir: /3dgs_pipe/thirdparty/GS-SDF
+    environment:
+      TORCH_CACHE_PATH: /root/.cache
+    volumes:
+      - type: bind
+        source: ../..
+        target: /3dgs_pipe
+      - type: bind
+        source: ${TORCH_CACHE_PATH:-../../torch_cache}
+        target: /root/.cache
+      - type: bind
+        source: ${SOURCE_FOLDER_PATH:-../../../datasets_gs}
+        target: /workspace/source_folder
+    gpus:
+      - driver: nvidia
+        count: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

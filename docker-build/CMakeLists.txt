@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.0.2)
+if(POLICY CMP0104)
+  cmake_policy(SET CMP0104 NEW)
+endif()
+project(neural_mapping LANGUAGES C CXX CUDA)
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/Build.cmake")

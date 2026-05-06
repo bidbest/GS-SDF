@@ -32,6 +32,9 @@ DataConfig read_params(const std::filesystem::path &_dataset_path,
   fsSettings["color_pose_type"] >> config.color_pose_type;
   fsSettings["color_pose_w2c"] >> config.color_pose_w2c;
   fsSettings["depth_pose_type"] >> config.depth_pose_type;
+  if (!fsSettings["llff"].empty()) {
+    fsSettings["llff"] >> config.llff;
+  }
 
   if (!fsSettings["camera_path"].empty()) {
     config.camera_path = _dataset_path / std::string(fsSettings["camera_path"]);
@@ -948,11 +951,25 @@ void DataParser::load_depths(const DepthType& depth_type,
           continue;
         }
         if (is_need_ds) {
-          auto sample_idx =
-              torch::randint(0, depth.size(0), {ds_pt_num_}, torch::kLong);
-          depth = depth.index_select(0, sample_idx);
-          direction = direction.index_select(0, sample_idx);
+          auto total_points = depth.size(0);
+          auto stride = std::max<int64_t>(1, total_points / ds_pt_num_);
+          auto end_idx = std::min<int64_t>(total_points, stride * ds_pt_num_);
+          depth = depth.slice(0, 0, end_idx, stride);
+          direction = direction.slice(0, 0, end_idx, stride);
+          if (depth.size(0) > ds_pt_num_) {
+            depth = depth.narrow(0, 0, ds_pt_num_);
+            direction = direction.narrow(0, 0, ds_pt_num_);
+          }
         }
+
+        TORCH_CHECK(
+            depth.size(0) == direction.size(0),
+            "Depth/direction sample count mismatch in load_depths: depth=",
+            depth.size(0),
+            ", direction=",
+            direction.size(0),
+            ", raw index=",
+            i);
 
         auto xyz = direction * depth + pos;
         if (llff) {
@@ -972,7 +989,7 @@ void DataParser::load_depths(const DepthType& depth_type,
           train_depth_pack_.xyz.index_put_({i}, xyz);
           train_depth_pack_.origin.index_put_({i}, pos.view({1, 3}));
 
-          train_depth_poses_.index_put_({i - i / 8}, pose);
+          train_depth_poses_.index_put_({i}, pose);
           train_depth_filelists_[i] = raw_depth_filelists_[i];
         }
       }

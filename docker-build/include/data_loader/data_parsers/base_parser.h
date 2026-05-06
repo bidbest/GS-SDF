@@ -43,6 +43,7 @@ struct DataConfig {
   DepthType depth_type;
   int color_pose_type, depth_pose_type;
   bool color_pose_w2c = false;
+  bool llff = false;
 };
 
 DataConfig read_params(const std::filesystem::path &_dataset_path,

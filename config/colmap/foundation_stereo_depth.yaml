@@ -1,0 +1,71 @@
+%YAML:1.0
+
+base_config: "../base.yaml"
+package_path: "__PACKAGE_PATH__"
+
+sdf_iter_step: 5000
+gs_iter_step: 30000
+
+preload: 1
+llff: 0
+
+
+# dataset_type
+#   Replica = 0,
+#   R3live = 1,
+#   NeuralRGBD = 2,
+#   KITTI = 3,
+#   FastLivo = 4,
+#   Oxford Spires = 5,
+#   Colmap = 6
+dataset_type: 6
+camera_path: "cameras.txt"
+color_path: "images"
+color_type: ".png"
+color_pose_path: "images.txt"
+color_pose_type: 4
+color_pose_w2c: 1
+depth_path: "depths"
+depth_pose_path: "depths.txt"
+depth_pose_type: 4
+depth_type: 0
+
+sh_degree: 3
+bck_color: 0
+
+frame_rate: 10
+min_range: 0.01
+max_range: 100
+ds_pt_num: 10000
+max_pt_num: 1000000
+
+outlier_remove: 1
+outlier_dist: 0.05
+outlier_removal_interval: 2000
+
+leaf_sizes: 0.2
+bce_sigma: 1.0
+
+vis_resolution: 0.1
+export_resolution: 0.04
+fps: 10
+
+camera:
+   scale: 1.0
+
+   model: __CAMERA_MODEL__
+   width: __CAMERA_WIDTH__
+   height: __CAMERA_HEIGHT__
+   fx: __CAMERA_FX__
+   fy: __CAMERA_FY__
+   cx: __CAMERA_CX__
+   cy: __CAMERA_CY__
+
+   d0: __CAMERA_D0__
+   d1: __CAMERA_D1__
+   d2: __CAMERA_D2__
+   d3: __CAMERA_D3__
+   d4: __CAMERA_D4__
+
+map:
+   map_size: 300
